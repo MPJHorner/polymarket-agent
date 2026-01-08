@@ -70,7 +70,7 @@
         "Implement batch processing to respect rate limits",
         "Store scanned results in `traders` table"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "data-003",
