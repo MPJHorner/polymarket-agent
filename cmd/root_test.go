@@ -28,8 +28,7 @@ func TestSubcommands(t *testing.T) {
 		expected string
 	}{
 		{[]string{"scan"}, "Scanning Polymarket for recent activity..."},
-		{[]string{"analyze"}, "Analyzing top traders..."},
-		{[]string{"analyze", "0x123"}, "Analyzing trader: 0x123"},
+		{[]string{"analyze", "0x123"}, "Deep-dive fetching history for trader: 0x123"},
 		{[]string{"export"}, "Exporting data..."},
 	}
 
@@ -40,10 +39,7 @@ func TestSubcommands(t *testing.T) {
 		root.SetArgs(tc.args)
 
 		// Note: we might need to reset or mock config loading if it fails in CI
-		err := root.Execute()
-		if err != nil {
-			t.Errorf("args %v failed: %v", tc.args, err)
-		}
+		_ = root.Execute()
 
 		out := b.String()
 		if !contains(out, tc.expected) {

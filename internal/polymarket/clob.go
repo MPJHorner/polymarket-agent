@@ -46,6 +46,25 @@ func (c *Client) GetTrades(ctx context.Context, marketID string) ([]Trade, error
 	return trades, nil
 }
 
+func (c *Client) GetAccountTrades(ctx context.Context, address string) ([]Trade, error) {
+	var trades []Trade
+	resp, err := c.clobResty.R().
+		SetContext(ctx).
+		SetQueryParam("maker_address", address).
+		SetResult(&trades).
+		Get("/trades")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account trades: %w", err)
+	}
+
+	if err := c.checkError(resp); err != nil {
+		return nil, err
+	}
+
+	return trades, nil
+}
+
 func (c *Client) GetOrderbook(ctx context.Context, tokenID string) (*Orderbook, error) {
 	var book Orderbook
 	resp, err := c.clobResty.R().
