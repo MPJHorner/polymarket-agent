@@ -42,7 +42,7 @@
         "Implement subcommands: `scan`, `analyze`, `export`",
         "Verify `polytracker --help` displays correct flags and commands"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "data-001",
