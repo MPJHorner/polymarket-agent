@@ -15,7 +15,7 @@
         "Create default `config.yaml` generation logic",
         "Verify config loading and environment variable overrides"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "core-002",
