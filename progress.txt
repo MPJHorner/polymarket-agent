@@ -260,4 +260,38 @@ Iteration: 1
 
 ## Notes for Next Session
 - Start working on ui-001: TUI Shell & Layout
+
+================================================================================
+Session: 2026-01-08T22:00:00Z
+Iteration: 1
+================================================================================
+
+## Starting State
+- Features passing: 6/15
+- Working on: ui-001 "TUI Shell & Layout"
+
+## Work Done
+- Added Bubble Tea, Lip Gloss, and Bubbles as dependencies
+- Created `internal/ui` package with a base Bubble Tea model
+- Implemented main application layout with Header, Content, and Footer
+- Implemented Tab navigation system for Scan, Leaderboard, Watchlist, and Settings
+- Added global keybindings for navigation (1-4) and quitting (q)
+- Created `tui` CLI command and set it as the default command when no arguments are provided
+- Added unit tests for the UI model and navigation
+
+## Testing
+- Test command: go test ./internal/ui/...
+- Result: PASSED
+- Details: 2 tests passed in internal/ui
+
+## Commits
+- feat: implement TUI shell and layout for ui-001
+
+## Ending State
+- Features passing: 7/15
+- Feature ui-001 marked as passes: true
+- All tests passing: YES
+
+## Notes for Next Session
+- Implement ui-002: Theme System
 ================================================================================

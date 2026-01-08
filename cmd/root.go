@@ -21,6 +21,10 @@ var rootCmd = &cobra.Command{
 	Use:   "polytracker",
 	Short: "Polytracker is a tool to track and analyze Polymarket traders",
 	Long:  `A terminal application in Go to identify high-performing Polymarket traders, analyze their strategies using Claude AI, and track their performance.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Launch TUI by default if no subcommand is provided
+		tuiCmd.Run(cmd, args)
+	},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		var err error
 		cfg, err = config.LoadConfig(cfgFile)
