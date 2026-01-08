@@ -1,0 +1,198 @@
+{
+  "name": "Polytracker",
+  "description": "Terminal application in Go to identify high-performing Polymarket traders, analyze their strategies using Claude AI, and track their performance.",
+  "testCommand": "go test ./...",
+  "features": [
+    {
+      "id": "core-001",
+      "category": "functional",
+      "priority": "high",
+      "description": "Initialize Project & Configuration",
+      "steps": [
+        "Initialize Go module `polytracker`",
+        "Implement `config` package using Viper",
+        "Define configuration structure (API keys, DB path, Theme defaults)",
+        "Create default `config.yaml` generation logic",
+        "Verify config loading and environment variable overrides"
+      ],
+      "passes": false
+    },
+    {
+      "id": "core-002",
+      "category": "functional",
+      "priority": "high",
+      "description": "Database Layer & Schema",
+      "steps": [
+        "Initialize SQLite connection using `go-sqlite3`",
+        "Implement schema migration system",
+        "Create tables: `traders`, `trades`, `markets`, `market_snapshots`, `analyses`, `watchlist`, `settings`",
+        "Implement basic CRUD repositories for Traders and Trades",
+        "Verify database file creation and table structure"
+      ],
+      "passes": false
+    },
+    {
+      "id": "core-003",
+      "category": "functional",
+      "priority": "medium",
+      "description": "CLI Command Structure",
+      "steps": [
+        "Implement CLI entry point (e.g., using Cobra or standard flag package)",
+        "Add flags: `--min-trades`, `--output`, `--theme`, `--claude-endpoint`",
+        "Implement subcommands: `scan`, `analyze`, `export`",
+        "Verify `polytracker --help` displays correct flags and commands"
+      ],
+      "passes": false
+    },
+    {
+      "id": "data-001",
+      "category": "integration",
+      "priority": "high",
+      "description": "Polymarket API Client",
+      "steps": [
+        "Create `polymarket` package with `resty` client",
+        "Implement Gamma API methods (Market metadata)",
+        "Implement CLOB API methods (Orderbook, Trades)",
+        "Implement rate limiting and error handling",
+        "Verify API connectivity with unit tests"
+      ],
+      "passes": false
+    },
+    {
+      "id": "data-002",
+      "category": "functional",
+      "priority": "high",
+      "description": "Trader Scanner Logic",
+      "steps": [
+        "Implement `Scanner` service to fetch recent market activity",
+        "Extract unique trader addresses from activity",
+        "Calculate metrics: Win Rate, P&L, ROI, Volume",
+        "Implement batch processing to respect rate limits",
+        "Store scanned results in `traders` table"
+      ],
+      "passes": false
+    },
+    {
+      "id": "data-003",
+      "category": "functional",
+      "priority": "medium",
+      "description": "Analysis Data Fetcher",
+      "steps": [
+        "Implement deep-dive fetcher for specific trader history",
+        "Fetch and store historical market context (snapshots) for trades",
+        "Implement caching logic to avoid re-fetching existing data",
+        "Verify data completeness for analysis (Entry price, Exit price, timestamps)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-001",
+      "category": "ui",
+      "priority": "high",
+      "description": "TUI Shell & Layout",
+      "steps": [
+        "Initialize Bubble Tea application model",
+        "Implement main application layout (Header, Content, Footer/Statusbar)",
+        "Implement Tab navigation system (Scan, Leaderboard, Watchlist, Settings)",
+        "Handle global keybindings (q, ?, 1-4)",
+        "Verify TUI launches and navigation works"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-002",
+      "category": "ui",
+      "priority": "medium",
+      "description": "Theme System",
+      "steps": [
+        "Define `Theme` struct and color definitions",
+        "Implement color palettes: Dracula, Nord, Gruvbox, Catppuccin, Tokyo",
+        "Create style helper functions using Lip Gloss",
+        "Apply current theme to TUI base components"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-003",
+      "category": "ui",
+      "priority": "high",
+      "description": "Leaderboard Screen",
+      "steps": [
+        "Implement `bubble-table` for trader rankings",
+        "Bind table to `traders` database query",
+        "Implement sorting (Win%, P&L) and pagination",
+        "Add row selection and 'Enter' key event to navigate to Detail view",
+        "Verify leaderboard renders data correctly"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-004",
+      "category": "ui",
+      "priority": "medium",
+      "description": "Trader Detail & History Screen",
+      "steps": [
+        "Design Profile and Stats summary panels",
+        "Implement 'Recent Trades' list view",
+        "Add keybindings: 'a' (Analyze), 'w' (Watch), 't' (All Trades)",
+        "Implement 'Back' navigation to Leaderboard",
+        "Verify trader details match selected trader"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ui-005",
+      "category": "ui",
+      "priority": "medium",
+      "description": "Watchlist Screen",
+      "steps": [
+        "Implement database queries for Watchlist",
+        "Create Watchlist UI table/list",
+        "Implement 'Add/Remove' logic from other screens",
+        "Allow adding notes to watchlist items",
+        "Verify persistence of watchlist items"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ai-001",
+      "category": "integration",
+      "priority": "medium",
+      "description": "Claude AI Integration",
+      "steps": [
+        "Initialize `anthropic-sdk-go` client",
+        "Implement `ThesisPrompt` template generation from trader data",
+        "Create `AnalyzeTrader` service method",
+        "Handle API errors and token limits",
+        "Verify prompt generation and mock API response"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ai-002",
+      "category": "ui",
+      "priority": "medium",
+      "description": "Analysis & Thesis UI",
+      "steps": [
+        "Create Analysis progress screen (Fetching data... Analyzing...)",
+        "Implement Markdown renderer for Claude response",
+        "Add actions: Save to file, Copy, Retry",
+        "Verify analysis flow from Trigger to Result display"
+      ],
+      "passes": false
+    },
+    {
+      "id": "func-001",
+      "category": "functional",
+      "priority": "low",
+      "description": "Export & Reporting",
+      "steps": [
+        "Implement CSV export logic for Leaderboard",
+        "Implement Thesis Markdown export",
+        "Wire up `export` CLI command",
+        "Verify generated files contain correct data"
+      ],
+      "passes": false
+    }
+  ]
+}
