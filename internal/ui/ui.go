@@ -18,14 +18,20 @@ const (
 
 type Model struct {
 	state  sessionState
+	styles Styles
 	width  int
 	height int
 	err    error
 }
 
-func NewModel() Model {
+func NewModel(themeName string) Model {
+	t, ok := Themes[strings.ToLower(themeName)]
+	if !ok {
+		t = Dracula
+	}
 	return Model{
-		state: stateLeaderboard,
+		state:  stateLeaderboard,
+		styles: GetStyles(t),
 	}
 }
 
@@ -67,7 +73,7 @@ func (m Model) View() string {
 	var s strings.Builder
 
 	// Header
-	header := HeaderStyle.Render(" POLYTRACKER ")
+	header := m.styles.Header.Render(" POLYTRACKER ")
 	s.WriteString(header + "\n")
 
 	// Tabs
@@ -87,7 +93,7 @@ func (m Model) View() string {
 	}
 	s.WriteString(footer)
 
-	return DocStyle.Render(s.String())
+	return m.styles.Doc.Width(m.width).Height(m.height).Render(s.String())
 }
 
 func (m Model) renderTabs() string {
@@ -97,9 +103,9 @@ func (m Model) renderTabs() string {
 
 	for i, label := range labels {
 		if m.state == states[i] {
-			tabs = append(tabs, ActiveTabStyle.Render(label))
+			tabs = append(tabs, m.styles.ActiveTab.Render(label))
 		} else {
-			tabs = append(tabs, TabStyle.Render(label))
+			tabs = append(tabs, m.styles.Tab.Render(label))
 		}
 	}
 
@@ -119,16 +125,16 @@ func (m Model) renderContent() string {
 		content = "Settings View (Work in Progress)"
 	}
 
-	return ContentStyle.Render(content)
+	return m.styles.Content.Render(content)
 }
 
 func (m Model) renderFooter() string {
 	help := "q: quit • 1-4: change tab • ?: help"
-	return FooterStyle.Width(m.width).Render(help)
+	return m.styles.Footer.Width(m.width).Render(help)
 }
 
-func Start() error {
-	p := tea.NewProgram(NewModel(), tea.WithAltScreen())
+func Start(themeName string) error {
+	p := tea.NewProgram(NewModel(themeName), tea.WithAltScreen())
 	_, err := p.Run()
 	return err
 }

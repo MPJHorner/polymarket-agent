@@ -8,7 +8,7 @@ import (
 )
 
 func TestModelUpdate(t *testing.T) {
-	m := NewModel()
+	m := NewModel("dracula")
 
 	// Test tab switching
 	t.Run("tab switching", func(t *testing.T) {
@@ -43,7 +43,7 @@ func TestModelUpdate(t *testing.T) {
 }
 
 func TestModelView(t *testing.T) {
-	m := NewModel()
+	m := NewModel("dracula")
 	m.width = 80
 	m.height = 24
 

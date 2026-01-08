@@ -11,7 +11,7 @@ var tuiCmd = &cobra.Command{
 	Use:   "tui",
 	Short: "Launch the interactive terminal UI",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := ui.Start(); err != nil {
+		if err := ui.Start(cfg.UI.Theme); err != nil {
 			log.Fatalf("Error starting TUI: %v", err)
 		}
 	},

@@ -97,7 +97,7 @@
         "Handle global keybindings (q, ?, 1-4)",
         "Verify TUI launches and navigation works"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-002",
@@ -110,7 +110,7 @@
         "Create style helper functions using Lip Gloss",
         "Apply current theme to TUI base components"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-003",
