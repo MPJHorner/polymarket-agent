@@ -27,7 +27,7 @@ func TestSubcommands(t *testing.T) {
 		args     []string
 		expected string
 	}{
-		{[]string{"scan"}, "Scanning Polymarket..."},
+		{[]string{"scan"}, "Scanning Polymarket for recent activity..."},
 		{[]string{"analyze"}, "Analyzing top traders..."},
 		{[]string{"analyze", "0x123"}, "Analyzing trader: 0x123"},
 		{[]string{"export"}, "Exporting data..."},
