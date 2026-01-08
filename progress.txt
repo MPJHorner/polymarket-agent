@@ -29,3 +29,35 @@ Iteration: 1
 
 ## Notes for Next Session
 - Proceed with core-002: Database Layer & Schema
+
+================================================================================
+Session: 2026-01-08T13:00:00Z
+Iteration: 1
+================================================================================
+
+## Starting State
+- Features passing: 1/14
+- Working on: core-002 "Database Layer & Schema"
+
+## Work Done
+- Implemented SQLite database layer in `internal/db`
+- Created database schema with tables for traders, trades, markets, snapshots, analyses, watchlist, and settings
+- Implemented automated migration system to initialize tables
+- Developed CRUD repositories for Traders and Trades
+- Added unit tests for database initialization and CRUD operations
+
+## Testing
+- Test command: go test ./...
+- Result: PASSED
+- Details: 4 tests passed (1 in db, 3 in config)
+
+## Commits
+- 3581798: feat: implement database layer and schema for core-002
+
+## Ending State
+- Features passing: 2/14
+- Feature core-002 marked as passes: true
+- All tests passing: YES
+
+## Notes for Next Session
+- Start working on core-003: CLI Command Structure or data-001: Polymarket API Client

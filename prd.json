@@ -29,7 +29,7 @@
         "Implement basic CRUD repositories for Traders and Trades",
         "Verify database file creation and table structure"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "core-003",
