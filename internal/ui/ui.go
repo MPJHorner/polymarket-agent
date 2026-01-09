@@ -29,6 +29,7 @@ type Model struct {
 	err            error
 	leaderboard    *Leaderboard
 	traderDetail   *TraderDetail
+	watchlist      *Watchlist
 	db             *db.DB
 	selectedTrader *db.Trader
 }
@@ -43,6 +44,7 @@ func NewModel(themeName string) Model {
 		state:       stateLeaderboard,
 		styles:      styles,
 		leaderboard: NewLeaderboard(styles),
+		watchlist:   NewWatchlist(styles),
 	}
 }
 
@@ -80,6 +82,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(cmds...)
 		case "3":
 			m.state = stateWatchlist
+			if m.db != nil && m.watchlist != nil {
+				return m, m.watchlist.LoadWatchlist(m.db)
+			}
 			return m, nil
 		case "4":
 			m.state = stateSettings
@@ -98,6 +103,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.traderDetail != nil {
 			m.traderDetail.SetSize(m.width, contentHeight)
+		}
+		if m.watchlist != nil {
+			m.watchlist.SetSize(m.width, contentHeight)
 		}
 
 	case TraderSelectedMsg:
@@ -159,6 +167,46 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 		return m, tea.Batch(cmds...)
+
+	case watchlistLoadedMsg:
+		if m.watchlist != nil {
+			m.watchlist, cmd = m.watchlist.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+
+	case WatchlistTraderSelectedMsg:
+		if msg.Trader != nil {
+			m.selectedTrader = msg.Trader
+			m.previousState = m.state
+			m.state = stateTraderDetail
+			m.traderDetail = NewTraderDetail(msg.Trader, m.styles)
+			m.traderDetail.SetSize(m.width, m.height-6)
+			if m.db != nil {
+				cmds = append(cmds, m.traderDetail.LoadTrades(m.db))
+				cmds = append(cmds, m.traderDetail.CheckWatchlistStatus(m.db))
+			}
+			return m, tea.Batch(cmds...)
+		}
+		return m, nil
+
+	case WatchlistRemoveMsg:
+		if m.db != nil && msg.TraderID != "" {
+			_ = m.db.RemoveFromWatchlist(msg.TraderID)
+			if m.watchlist != nil {
+				m.watchlist.RemoveItem(msg.TraderID)
+			}
+		}
+		return m, nil
+
+	case WatchlistNoteUpdatedMsg:
+		if m.db != nil && msg.TraderID != "" {
+			_ = m.db.AddToWatchlist(msg.TraderID, msg.Note)
+			if m.watchlist != nil {
+				m.watchlist.UpdateNote(msg.TraderID, msg.Note)
+			}
+		}
+		return m, nil
 	}
 
 	// Pass messages to leaderboard when in leaderboard state
@@ -183,6 +231,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Pass messages to trader detail when in trader detail state
 	if m.state == stateTraderDetail && m.traderDetail != nil {
 		m.traderDetail, cmd = m.traderDetail.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	// Pass messages to watchlist when in watchlist state
+	if m.state == stateWatchlist && m.watchlist != nil {
+		m.watchlist, cmd = m.watchlist.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -247,7 +301,10 @@ func (m Model) renderContent() string {
 		}
 		content = "Leaderboard View (Loading...)"
 	case stateWatchlist:
-		content = "Watchlist View (Work in Progress)"
+		if m.watchlist != nil {
+			return m.styles.Content.Render(m.watchlist.View())
+		}
+		content = "Watchlist View (Loading...)"
 	case stateSettings:
 		content = "Settings View (Work in Progress)"
 	case stateTraderDetail:
@@ -289,6 +346,12 @@ func (m Model) renderFooter() string {
 			help = m.traderDetail.HelpText() + " | q: quit"
 		} else {
 			help = "esc: back | q: quit"
+		}
+	case stateWatchlist:
+		if m.watchlist != nil {
+			help = m.watchlist.HelpText() + " | q: quit | 1-4: tabs"
+		} else {
+			help = "q: quit | 1-4: change tab | ?: help"
 		}
 	default:
 		help = "q: quit | 1-4: change tab | ?: help"

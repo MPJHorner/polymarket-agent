@@ -165,7 +165,7 @@
         "Allow adding notes to watchlist items",
         "Verify persistence of watchlist items"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ai-001",
