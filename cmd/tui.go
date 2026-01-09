@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"log"
+
+	"polytracker/internal/claude"
 	"polytracker/internal/db"
 	"polytracker/internal/ui"
 
@@ -18,8 +20,27 @@ var tuiCmd = &cobra.Command{
 		}
 		defer database.Close()
 
-		if err := ui.StartWithDB(cfg.UI.Theme, database); err != nil {
-			log.Fatalf("Error starting TUI: %v", err)
+		// Try to create a Claude client if API key is configured
+		var claudeClient *claude.Client
+		if cfg.Claude.APIKey != "" {
+			claudeClient, err = claude.NewClient(claude.Config{
+				APIKey:   cfg.Claude.APIKey,
+				Endpoint: cfg.Claude.Endpoint,
+			})
+			if err != nil {
+				// Log warning but don't fail - analysis just won't be available
+				log.Printf("Warning: Could not initialize Claude client: %v", err)
+			}
+		}
+
+		if claudeClient != nil {
+			if err := ui.StartWithClaudeClient(cfg.UI.Theme, database, claudeClient); err != nil {
+				log.Fatalf("Error starting TUI: %v", err)
+			}
+		} else {
+			if err := ui.StartWithDB(cfg.UI.Theme, database); err != nil {
+				log.Fatalf("Error starting TUI: %v", err)
+			}
 		}
 	},
 }

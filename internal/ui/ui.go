@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"polytracker/internal/claude"
 	"polytracker/internal/db"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -18,6 +20,7 @@ const (
 	stateWatchlist
 	stateSettings
 	stateTraderDetail
+	stateAnalysis
 )
 
 type Model struct {
@@ -30,7 +33,9 @@ type Model struct {
 	leaderboard    *Leaderboard
 	traderDetail   *TraderDetail
 	watchlist      *Watchlist
+	analysis       *Analysis
 	db             *db.DB
+	claudeClient   *claude.Client
 	selectedTrader *db.Trader
 }
 
@@ -51,6 +56,13 @@ func NewModel(themeName string) Model {
 func NewModelWithDB(themeName string, database *db.DB) Model {
 	m := NewModel(themeName)
 	m.db = database
+	return m
+}
+
+func NewModelWithClaudeClient(themeName string, database *db.DB, claudeClient *claude.Client) Model {
+	m := NewModel(themeName)
+	m.db = database
+	m.claudeClient = claudeClient
 	return m
 }
 
@@ -107,6 +119,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.watchlist != nil {
 			m.watchlist.SetSize(m.width, contentHeight)
 		}
+		if m.analysis != nil {
+			m.analysis.SetSize(m.width, contentHeight)
+		}
 
 	case TraderSelectedMsg:
 		if msg.Trader != nil {
@@ -125,14 +140,88 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case GoBackMsg:
+		// Go back to previous state
+		if m.state == stateAnalysis {
+			// Go back to trader detail if we came from there
+			if m.previousState == stateTraderDetail && m.selectedTrader != nil {
+				m.state = stateTraderDetail
+				m.analysis = nil
+				return m, nil
+			}
+		}
 		m.state = stateLeaderboard
 		m.selectedTrader = nil
 		m.traderDetail = nil
+		m.analysis = nil
 		return m, nil
 
 	case AnalyzeTraderMsg:
-		// Will be implemented in ai-001/ai-002
+		if msg.Trader != nil {
+			m.selectedTrader = msg.Trader
+			m.previousState = m.state
+			m.state = stateAnalysis
+			m.analysis = NewAnalysis(msg.Trader, m.styles, m.claudeClient)
+			m.analysis.SetSize(m.width, m.height-6)
+			var cmds []tea.Cmd
+			cmds = append(cmds, m.analysis.Init())
+			if m.db != nil {
+				cmds = append(cmds, m.analysis.FetchData(m.db))
+			}
+			return m, tea.Batch(cmds...)
+		}
 		return m, nil
+
+	case AnalysisDataFetchedMsg:
+		if m.analysis != nil {
+			m.analysis, cmd = m.analysis.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+
+	case AnalysisCompleteMsg:
+		if m.analysis != nil {
+			m.analysis, cmd = m.analysis.Update(msg)
+			cmds = append(cmds, cmd)
+			// Save analysis to database
+			if m.db != nil && m.selectedTrader != nil {
+				analysis := &db.Analysis{
+					TraderID: m.selectedTrader.Address,
+					Thesis:   msg.Thesis,
+				}
+				// Save without blocking UI
+				go func() {
+					_ = m.db.SaveAnalysis(analysis)
+				}()
+			}
+		}
+		return m, tea.Batch(cmds...)
+
+	case AnalysisErrorMsg:
+		if m.analysis != nil {
+			m.analysis, cmd = m.analysis.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+
+	case AnalysisSavedMsg:
+		if m.analysis != nil {
+			m.analysis, cmd = m.analysis.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+
+	case AnalysisRetryMsg:
+		if m.analysis != nil && m.db != nil {
+			return m, m.analysis.FetchData(m.db)
+		}
+		return m, nil
+
+	case spinner.TickMsg:
+		if m.state == stateAnalysis && m.analysis != nil {
+			m.analysis, cmd = m.analysis.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
 
 	case ToggleWatchlistMsg:
 		if m.db != nil && msg.Trader != nil {
@@ -240,6 +329,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	}
 
+	// Pass messages to analysis when in analysis state
+	if m.state == stateAnalysis && m.analysis != nil {
+		m.analysis, cmd = m.analysis.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -309,6 +404,11 @@ func (m Model) renderContent() string {
 		content = "Settings View (Work in Progress)"
 	case stateTraderDetail:
 		content = m.renderTraderDetail()
+	case stateAnalysis:
+		if m.analysis != nil {
+			return m.styles.Content.Render(m.analysis.View())
+		}
+		content = "Analysis View (Loading...)"
 	}
 
 	return m.styles.Content.Render(content)
@@ -353,6 +453,12 @@ func (m Model) renderFooter() string {
 		} else {
 			help = "q: quit | 1-4: change tab | ?: help"
 		}
+	case stateAnalysis:
+		if m.analysis != nil {
+			help = m.analysis.HelpText() + " | q: quit"
+		} else {
+			help = "esc: back | q: quit"
+		}
 	default:
 		help = "q: quit | 1-4: change tab | ?: help"
 	}
@@ -367,6 +473,12 @@ func Start(themeName string) error {
 
 func StartWithDB(themeName string, database *db.DB) error {
 	p := tea.NewProgram(NewModelWithDB(themeName, database), tea.WithAltScreen())
+	_, err := p.Run()
+	return err
+}
+
+func StartWithClaudeClient(themeName string, database *db.DB, claudeClient *claude.Client) error {
+	p := tea.NewProgram(NewModelWithClaudeClient(themeName, database, claudeClient), tea.WithAltScreen())
 	_, err := p.Run()
 	return err
 }

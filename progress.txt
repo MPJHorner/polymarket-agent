@@ -487,3 +487,50 @@ Iteration: 1
 ## Notes for Next Session
 - Implement ai-002: Analysis & Thesis UI
 ================================================================================
+
+================================================================================
+Session: 2026-01-09T10:00:00Z
+Iteration: 1
+================================================================================
+
+## Starting State
+- Features passing: 13/15
+- Working on: ai-002 "Analysis & Thesis UI"
+
+## Work Done
+- Created `internal/ui/analysis.go` with Analysis component:
+  - Progress screen with spinner showing "Fetching data..." and "Analyzing..." states
+  - Basic markdown renderer for styling Claude responses (headers, lists, bold)
+  - Save to file action that exports thesis to `exports/` directory as markdown
+  - Copy action flag (full clipboard support would require additional dependency)
+  - Retry action to re-run analysis from error or complete states
+  - Error handling with user-friendly error display
+  - Scrollable thesis view with j/k navigation
+- Added `stateAnalysis` session state to main UI model
+- Implemented message handlers for analysis flow:
+  - AnalyzeTraderMsg triggers analysis from trader detail 'a' key
+  - AnalysisDataFetchedMsg transitions to analyzing state
+  - AnalysisCompleteMsg displays thesis and saves to database
+  - AnalysisErrorMsg shows error with retry option
+  - AnalysisSavedMsg confirms file save
+  - AnalysisRetryMsg restarts analysis
+- Updated TUI command to initialize Claude client when API key is configured
+- Added `StartWithClaudeClient` function to UI package
+- Created comprehensive unit tests in `analysis_test.go`
+
+## Testing
+- Test command: go test ./...
+- Result: PASSED
+- Details: All tests passed (cmd, claude, config, db, polymarket, ui packages)
+
+## Commits
+- 71da25e: feat: implement analysis and thesis UI for ai-002
+
+## Ending State
+- Features passing: 14/15
+- Feature ai-002 marked as passes: true
+- All tests passing: YES
+
+## Notes for Next Session
+- Implement func-001: Export & Reporting (final feature)
+================================================================================
