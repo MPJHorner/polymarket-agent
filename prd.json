@@ -45,6 +45,19 @@
       "passes": true
     },
     {
+      "id": "core-004",
+      "category": "functional",
+      "priority": "medium",
+      "description": "Build & Automation (Makefile)",
+      "steps": [
+        "Create Makefile with standard targets: build, test, run, clean, lint",
+        "Add cross-compilation support",
+        "Implement dependency management (tidy)",
+        "Verify all Makefile targets execute correctly"
+      ],
+      "passes": false
+    },
+    {
       "id": "data-001",
       "category": "integration",
       "priority": "high",
@@ -124,7 +137,7 @@
         "Add row selection and 'Enter' key event to navigate to Detail view",
         "Verify leaderboard renders data correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-004",

@@ -295,3 +295,41 @@ Iteration: 1
 ## Notes for Next Session
 - Implement ui-002: Theme System
 ================================================================================
+
+================================================================================
+Session: 2026-01-09T00:00:00Z
+Iteration: 1
+================================================================================
+
+## Starting State
+- Features passing: 8/15
+- Working on: ui-003 "Leaderboard Screen"
+
+## Work Done
+- Added bubble-table dependency for interactive table UI
+- Created `internal/ui/leaderboard.go` with Leaderboard component
+- Implemented trader rankings table with columns: Rank, Address, Username, Win%, P&L, ROI, Volume
+- Added sorting functionality with 'w' (Win%) and 'p' (P&L) toggle keys
+- Implemented pagination with page size of 20 traders
+- Added row selection with Enter key to navigate to Trader Detail view
+- Extended `trader_repository.go` with sorting and pagination options
+- Updated TUI command to connect to database for data retrieval
+- Added comprehensive unit tests for leaderboard component
+- Created basic Trader Detail view (to be expanded in ui-004)
+
+## Testing
+- Test command: go test ./...
+- Result: PASSED
+- Details: All tests passed including new leaderboard tests
+
+## Commits
+- 78d2f7e: feat: implement leaderboard screen for ui-003
+
+## Ending State
+- Features passing: 9/15
+- Feature ui-003 marked as passes: true
+- All tests passing: YES
+
+## Notes for Next Session
+- Implement core-004: Build & Automation (Makefile) or ui-004: Trader Detail & History Screen
+================================================================================
