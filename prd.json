@@ -151,7 +151,7 @@
         "Implement 'Back' navigation to Leaderboard",
         "Verify trader details match selected trader"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ui-005",

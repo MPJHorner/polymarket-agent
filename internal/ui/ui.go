@@ -28,6 +28,7 @@ type Model struct {
 	height         int
 	err            error
 	leaderboard    *Leaderboard
+	traderDetail   *TraderDetail
 	db             *db.DB
 	selectedTrader *db.Trader
 }
@@ -86,20 +87,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "?":
 			// Toggle help? For now just stay.
 			return m, nil
-		case "esc":
-			if m.state == stateTraderDetail {
-				m.state = stateLeaderboard
-				m.selectedTrader = nil
-				return m, nil
-			}
 		}
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		contentHeight := m.height - 6 // Account for header, tabs, footer
 		if m.leaderboard != nil {
-			contentHeight := m.height - 6 // Account for header, tabs, footer
 			m.leaderboard.SetSize(m.width, contentHeight)
+		}
+		if m.traderDetail != nil {
+			m.traderDetail.SetSize(m.width, contentHeight)
 		}
 
 	case TraderSelectedMsg:
@@ -107,8 +105,53 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.selectedTrader = msg.Trader
 			m.previousState = m.state
 			m.state = stateTraderDetail
+			m.traderDetail = NewTraderDetail(msg.Trader, m.styles)
+			m.traderDetail.SetSize(m.width, m.height-6)
+			var cmds []tea.Cmd
+			if m.db != nil {
+				cmds = append(cmds, m.traderDetail.LoadTrades(m.db))
+				cmds = append(cmds, m.traderDetail.CheckWatchlistStatus(m.db))
+			}
+			return m, tea.Batch(cmds...)
 		}
 		return m, nil
+
+	case GoBackMsg:
+		m.state = stateLeaderboard
+		m.selectedTrader = nil
+		m.traderDetail = nil
+		return m, nil
+
+	case AnalyzeTraderMsg:
+		// Will be implemented in ai-001/ai-002
+		return m, nil
+
+	case ToggleWatchlistMsg:
+		if m.db != nil && msg.Trader != nil {
+			if msg.Add {
+				_ = m.db.AddToWatchlist(msg.Trader.Address, "")
+			} else {
+				_ = m.db.RemoveFromWatchlist(msg.Trader.Address)
+			}
+			if m.traderDetail != nil {
+				return m, m.traderDetail.CheckWatchlistStatus(m.db)
+			}
+		}
+		return m, nil
+
+	case tradesLoadedMsg:
+		if m.traderDetail != nil {
+			m.traderDetail, cmd = m.traderDetail.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+
+	case watchlistStatusMsg:
+		if m.traderDetail != nil {
+			m.traderDetail, cmd = m.traderDetail.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
 
 	case tradersLoadedMsg:
 		if m.leaderboard != nil {
@@ -135,6 +178,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.db != nil && (oldSort != newSort || oldOrder != newOrder || oldPage != newPage) {
 			cmds = append(cmds, m.leaderboard.LoadTraders(m.db))
 		}
+	}
+
+	// Pass messages to trader detail when in trader detail state
+	if m.state == stateTraderDetail && m.traderDetail != nil {
+		m.traderDetail, cmd = m.traderDetail.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -209,38 +258,13 @@ func (m Model) renderContent() string {
 }
 
 func (m Model) renderTraderDetail() string {
+	if m.traderDetail != nil {
+		return m.traderDetail.View()
+	}
 	if m.selectedTrader == nil {
 		return "No trader selected"
 	}
-
-	t := m.selectedTrader
-
-	// Simple trader detail view - will be expanded in ui-004
-	address := t.Address
-	if len(address) > 20 {
-		address = address[:10] + "..." + address[len(address)-8:]
-	}
-
-	username := t.Username
-	if username == "" {
-		username = "(no username)"
-	}
-
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		m.styles.Header.Render(" Trader Details "),
-		"",
-		m.styles.Highlight.Render("Address: ")+address,
-		m.styles.Highlight.Render("Username: ")+username,
-		"",
-		m.styles.Highlight.Render("Statistics:"),
-		formatStat("Win Rate", formatPercent(t.WinRate)),
-		formatStat("P&L", formatPNL(t.ProfitLoss)),
-		formatStat("ROI", formatPercent(t.ROI)),
-		formatStat("Volume", formatVolume(t.Volume)),
-		"",
-		m.styles.Subtle.Render("Press ESC to go back"),
-	)
+	return "Loading trader details..."
 }
 
 func formatStat(label, value string) string {
@@ -256,14 +280,18 @@ func (m Model) renderFooter() string {
 	switch m.state {
 	case stateLeaderboard:
 		if m.leaderboard != nil && m.db != nil {
-			help = m.leaderboard.HelpText() + " • q: quit • 1-4: tabs"
+			help = m.leaderboard.HelpText() + " | q: quit | 1-4: tabs"
 		} else {
-			help = "q: quit • 1-4: change tab • ?: help"
+			help = "q: quit | 1-4: change tab | ?: help"
 		}
 	case stateTraderDetail:
-		help = "esc: back • q: quit"
+		if m.traderDetail != nil {
+			help = m.traderDetail.HelpText() + " | q: quit"
+		} else {
+			help = "esc: back | q: quit"
+		}
 	default:
-		help = "q: quit • 1-4: change tab • ?: help"
+		help = "q: quit | 1-4: change tab | ?: help"
 	}
 	return m.styles.Footer.Width(m.width).Render(help)
 }

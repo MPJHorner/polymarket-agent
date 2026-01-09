@@ -371,3 +371,41 @@ Iteration: 1
 ## Notes for Next Session
 - Implement ui-004: Trader Detail & History Screen
 ================================================================================
+
+================================================================================
+Session: 2026-01-09T07:30:00Z
+Iteration: 1
+================================================================================
+
+## Starting State
+- Features passing: 10/15
+- Working on: ui-004 "Trader Detail & History Screen"
+
+## Work Done
+- Created `internal/ui/trader_detail.go` with TraderDetail component
+- Implemented profile panel showing address, username, and scan time
+- Implemented stats panel with color-coded Win Rate, P&L, ROI, and Volume
+- Implemented recent trades list view with market context
+- Added keybindings: 'a' (Analyze), 'w' (Watch), 't' (All Trades)
+- Implemented back navigation with ESC and backspace keys
+- Added scrolling support for long content
+- Created `internal/db/watchlist_repository.go` with CRUD operations
+- Integrated TraderDetail into main UI model with proper message passing
+- Added comprehensive unit tests for trader detail component
+
+## Testing
+- Test command: go test ./...
+- Result: PASSED
+- Details: All tests passed (cmd, config, db, polymarket, ui packages)
+
+## Commits
+- 6aec332: feat: implement trader detail and history screen for ui-004
+
+## Ending State
+- Features passing: 11/15
+- Feature ui-004 marked as passes: true
+- All tests passing: YES
+
+## Notes for Next Session
+- Implement ui-005: Watchlist Screen (database queries and UI already partially implemented)
+================================================================================
