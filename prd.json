@@ -179,7 +179,7 @@
         "Handle API errors and token limits",
         "Verify prompt generation and mock API response"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ai-002",

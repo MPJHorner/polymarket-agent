@@ -28,7 +28,7 @@ func TestSubcommands(t *testing.T) {
 		expected string
 	}{
 		{[]string{"scan"}, "Scanning Polymarket for recent activity..."},
-		{[]string{"analyze", "0x123"}, "Deep-dive fetching history for trader: 0x123"},
+		{[]string{"analyze", "0x123"}, "Fetching history for trader: 0x123"},
 		{[]string{"export"}, "Exporting data..."},
 	}
 
