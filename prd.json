@@ -205,7 +205,7 @@
         "Wire up `export` CLI command",
         "Verify generated files contain correct data"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

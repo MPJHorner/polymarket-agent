@@ -534,3 +534,44 @@ Iteration: 1
 ## Notes for Next Session
 - Implement func-001: Export & Reporting (final feature)
 ================================================================================
+
+================================================================================
+Session: 2026-01-09T07:40:00Z
+Iteration: 1
+================================================================================
+
+## Starting State
+- Features passing: 14/15
+- Working on: func-001 "Export & Reporting"
+
+## Work Done
+- Created `internal/export/export.go` with Exporter struct
+- Implemented CSV export logic for Leaderboard with all trader metrics
+- Implemented Thesis Markdown export with trader summary and metadata
+- Added `ExportAnalysisFromDB` to fetch and export saved analyses
+- Updated `cmd/export.go` with full CLI command implementation:
+  - `--type` flag for leaderboard/thesis export selection
+  - `--trader` flag for thesis export trader address
+  - `--filename` flag for custom output filenames
+- Added comprehensive unit tests in `internal/export/export_test.go`
+- Updated `cmd/root_test.go` to match new export command output
+
+## Testing
+- Test command: go test ./...
+- Result: PASSED
+- Details: All tests passed (cmd, claude, config, db, export, polymarket, ui packages)
+
+## Commits
+- feat: implement export and reporting for func-001
+
+## Ending State
+- Features passing: 15/15
+- Feature func-001 marked as passes: true
+- All tests passing: YES
+- PROJECT COMPLETE: All features implemented and passing
+
+## Notes
+- Final feature implemented
+- Export supports both CSV leaderboard export and Markdown thesis export
+- Files are saved to `exports/` directory by default
+================================================================================

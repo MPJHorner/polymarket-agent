@@ -29,7 +29,7 @@ func TestSubcommands(t *testing.T) {
 	}{
 		{[]string{"scan"}, "Scanning Polymarket for recent activity..."},
 		{[]string{"analyze", "0x123"}, "Fetching history for trader: 0x123"},
-		{[]string{"export"}, "Exporting data..."},
+		{[]string{"export"}, "Exporting leaderboard to CSV..."},
 	}
 
 	for _, tc := range cases {
